@@ -200,11 +200,13 @@ export default function Dashboard() {
               </h1>
               <p style={{ color: "var(--text-secondary)", fontSize: "1rem" }}>Here&apos;s an overview of your travel requests and account.</p>
             </div>
-            <button onClick={() => setShowModal(true)} style={{ background: "linear-gradient(135deg, #c8956c, #d4a853)", color: "#0a0a0f", border: "none", padding: "0.85rem 2rem", borderRadius: "0.6rem", fontWeight: 700, cursor: "pointer", fontSize: "0.9rem", transition: "transform 0.2s" }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = "none")}>
-              + Request New Trip
-            </button>
+            {user.role === "CUSTOMER" && (
+              <button onClick={() => setShowModal(true)} style={{ background: "linear-gradient(135deg, #c8956c, #d4a853)", color: "#0a0a0f", border: "none", padding: "0.85rem 2rem", borderRadius: "0.6rem", fontWeight: 700, cursor: "pointer", fontSize: "0.9rem", transition: "transform 0.2s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = "none")}>
+                + Request New Trip
+              </button>
+            )}
           </div>
 
           {/* Stats Cards */}
@@ -225,7 +227,7 @@ export default function Dashboard() {
 
           {/* Tab Switcher */}
           <div style={{ display: "flex", gap: "0.5rem", marginBottom: "2rem", background: "rgba(20,20,25,0.5)", padding: "0.35rem", borderRadius: "0.75rem", width: "fit-content" }}>
-            {[{ id: "trips", label: "My Trips" }, { id: "settings", label: "Profile & Settings" }].map((tab) => (
+            {[{ id: "trips", label: user.role === "ADMIN" || user.role === "AGENT" ? "All Bookings" : "My Trips" }, { id: "settings", label: "Profile & Settings" }].map((tab) => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
                 padding: "0.6rem 1.5rem", borderRadius: "0.5rem", border: "none", cursor: "pointer",
                 background: activeTab === tab.id ? "rgba(200,149,108,0.15)" : "transparent",
@@ -244,13 +246,19 @@ export default function Dashboard() {
               ) : bookings.length === 0 ? (
                 <div style={{ background: "rgba(20,20,25,0.6)", backdropFilter: "blur(12px)", border: "1px dashed rgba(200,149,108,0.2)", borderRadius: "1.25rem", padding: "4rem 2rem", textAlign: "center" }}>
                   <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🌍</div>
-                  <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", marginBottom: "0.75rem", color: "white" }}>Your adventure starts here</h3>
+                  <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", marginBottom: "0.75rem", color: "white" }}>
+                    {user.role === "ADMIN" || user.role === "AGENT" ? "No bookings found" : "Your adventure starts here"}
+                  </h3>
                   <p style={{ color: "var(--text-secondary)", marginBottom: "2rem", maxWidth: "450px", margin: "0 auto 2rem", lineHeight: 1.7 }}>
-                    You haven&apos;t requested any trips yet. Click the button below to tell us your dream destination — we&apos;ll handle the rest.
+                    {user.role === "ADMIN" || user.role === "AGENT" 
+                      ? "There are no trip requests in the system currently." 
+                      : "You haven't requested any trips yet. Click the button below to tell us your dream destination — we'll handle the rest."}
                   </p>
-                  <button onClick={() => setShowModal(true)} style={{ background: "linear-gradient(135deg, #c8956c, #d4a853)", color: "#0a0a0f", border: "none", padding: "0.85rem 2rem", borderRadius: "0.6rem", fontWeight: 700, cursor: "pointer", fontSize: "0.9rem" }}>
-                    Plan My First Trip
-                  </button>
+                  {user.role === "CUSTOMER" && (
+                    <button onClick={() => setShowModal(true)} style={{ background: "linear-gradient(135deg, #c8956c, #d4a853)", color: "#0a0a0f", border: "none", padding: "0.85rem 2rem", borderRadius: "0.6rem", fontWeight: 700, cursor: "pointer", fontSize: "0.9rem" }}>
+                      Plan My First Trip
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -260,6 +268,11 @@ export default function Dashboard() {
                         <h4 style={{ fontSize: "1.15rem", color: "white", marginBottom: "0.4rem", fontFamily: "var(--font-display)" }}>
                           {b.fromCity} → {b.toCity}
                         </h4>
+                        {(user.role === "ADMIN" || user.role === "AGENT") && (
+                          <div style={{ color: "var(--color-primary-light)", fontSize: "0.85rem", marginBottom: "0.5rem", fontWeight: "bold" }}>
+                            Requested By: {b.customerId?.name || b.guestName || "Unknown"} ({b.customerId?.email || b.guestEmail || "No email"}) | {b.customerId?.phone || b.guestPhone || "No phone"}
+                          </div>
+                        )}
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", color: "var(--text-secondary)", fontSize: "0.85rem" }}>
                           <span>📅 {new Date(b.departureDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                           <span>👥 {b.adultsCount} adults{b.childrenCount > 0 ? `, ${b.childrenCount} children` : ""}</span>
@@ -268,11 +281,42 @@ export default function Dashboard() {
                         </div>
                         {b.specialRequests && <p style={{ color: "var(--text-tertiary)", fontSize: "0.8rem", marginTop: "0.5rem", fontStyle: "italic" }}>"{b.specialRequests}"</p>}
                       </div>
-                      <div style={{ textAlign: "right" }}>
-                        <span style={{ padding: "0.3rem 0.9rem", borderRadius: "2rem", fontSize: "0.75rem", fontWeight: 700, background: statusColor(b.status).bg, color: statusColor(b.status).text, letterSpacing: "0.05em" }}>
-                          {b.status?.replace(/_/g, " ")}
-                        </span>
-                        <p style={{ color: "var(--text-tertiary)", fontSize: "0.75rem", marginTop: "0.5rem" }}>
+                      <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.5rem" }}>
+                        {(user.role === "ADMIN" || user.role === "AGENT") ? (
+                          <select 
+                            value={b.status}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              try {
+                                const RAW_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+                                const API_URL = RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+                                const res = await fetch(`${API_URL}/api/v1/bookings/${b._id}/status`, {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+                                  body: JSON.stringify({ status: newStatus }),
+                                });
+                                if (res.ok) {
+                                  fetchBookings();
+                                } else {
+                                  const err = await res.json();
+                                  alert(`Error: ${err.error?.message || "Failed to update status"}`);
+                                }
+                              } catch (err) {
+                                alert("Failed to update status.");
+                              }
+                            }}
+                            style={{ padding: "0.4rem 0.8rem", borderRadius: "0.4rem", background: "#111118", color: statusColor(b.status).text, border: `1px solid ${statusColor(b.status).text}`, fontWeight: 700, outline: "none", cursor: "pointer" }}
+                          >
+                            {["PENDING", "REVIEWING", "OPTIONS_SENT", "CONFIRMED", "PAYMENT_PENDING", "PAYMENT_RECEIVED", "BOOKING_IN_PROGRESS", "BOOKED", "COMPLETED", "CANCELLED", "REFUNDED"].map(status => (
+                              <option key={status} value={status}>{status.replace(/_/g, " ")}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span style={{ padding: "0.3rem 0.9rem", borderRadius: "2rem", fontSize: "0.75rem", fontWeight: 700, background: statusColor(b.status).bg, color: statusColor(b.status).text, letterSpacing: "0.05em" }}>
+                            {b.status?.replace(/_/g, " ")}
+                          </span>
+                        )}
+                        <p style={{ color: "var(--text-tertiary)", fontSize: "0.75rem" }}>
                           Requested {new Date(b.createdAt).toLocaleDateString("en-IN")}
                         </p>
                       </div>
