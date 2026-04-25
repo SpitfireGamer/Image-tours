@@ -58,10 +58,9 @@ export const errorHandler = (
   const errorResponse: Record<string, unknown> = {
     code,
     message,
+    actualMessage: err.message, // Temporary for debugging
+    stack: err.stack, // Temporary for debugging
   };
-  if (env.NODE_ENV === "development") {
-    errorResponse.stack = err.stack;
-  }
   if (details) {
     errorResponse.details = details;
   }
