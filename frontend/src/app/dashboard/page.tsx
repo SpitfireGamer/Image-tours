@@ -5,6 +5,21 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/sections/Navbar";
+import { FiCheckSquare, FiDollarSign, FiMapPin, FiClock } from "react-icons/fi";
+
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  PENDING: ["REVIEWING", "CANCELLED"],
+  REVIEWING: ["OPTIONS_SENT", "CANCELLED"],
+  OPTIONS_SENT: ["CONFIRMED", "CANCELLED"],
+  CONFIRMED: ["PAYMENT_PENDING", "CANCELLED"],
+  PAYMENT_PENDING: ["PAYMENT_RECEIVED", "CANCELLED"],
+  PAYMENT_RECEIVED: ["BOOKING_IN_PROGRESS"],
+  BOOKING_IN_PROGRESS: ["BOOKED", "CANCELLED"],
+  BOOKED: ["COMPLETED", "CANCELLED"],
+  COMPLETED: [],
+  CANCELLED: ["REFUNDED"],
+  REFUNDED: [],
+};
 
 export default function Dashboard() {
   const { user, loading, logout } = useAuth();
@@ -121,6 +136,7 @@ export default function Dashboard() {
     width: "100%", padding: "0.75rem 1rem", background: "rgba(255,255,255,0.04)",
     border: "1px solid rgba(200,149,108,0.2)", borderRadius: "0.6rem", color: "white",
     fontSize: "0.9rem", fontFamily: "var(--font-body)", outline: "none", transition: "border-color 0.3s",
+    colorScheme: "dark"
   };
 
   const labelStyle: React.CSSProperties = {
@@ -153,7 +169,7 @@ export default function Dashboard() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
                 <div><label style={labelStyle}>Travel Type</label>
-                  <select value={formData.travelType} onChange={(e) => setFormData({ ...formData, travelType: e.target.value })} style={inputStyle}>
+                  <select value={formData.travelType} onChange={(e) => setFormData({ ...formData, travelType: e.target.value })} style={{ ...inputStyle, background: "#111118" }}>
                     <option value="FULL_PACKAGE">Full Package</option><option value="FLIGHT">Flight Only</option><option value="TRAIN">Train Only</option><option value="HOTEL">Hotel Only</option>
                   </select>
                 </div>
@@ -167,7 +183,7 @@ export default function Dashboard() {
               </div>
 
               <div><label style={labelStyle}>Occasion (optional)</label>
-                <select value={formData.occasion} onChange={(e) => setFormData({ ...formData, occasion: e.target.value })} style={inputStyle}>
+                <select value={formData.occasion} onChange={(e) => setFormData({ ...formData, occasion: e.target.value })} style={{ ...inputStyle, background: "#111118" }}>
                   <option value="">Select occasion...</option><option value="HONEYMOON">Honeymoon</option><option value="ANNIVERSARY">Anniversary</option><option value="FAMILY">Family Trip</option><option value="BUSINESS">Business</option><option value="PILGRIMAGE">Pilgrimage</option><option value="GROUP_TOUR">Group Tour</option><option value="SOLO">Solo Adventure</option>
                 </select>
               </div>
@@ -226,8 +242,12 @@ export default function Dashboard() {
           </div>
 
           {/* Tab Switcher */}
-          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "2rem", background: "rgba(20,20,25,0.5)", padding: "0.35rem", borderRadius: "0.75rem", width: "fit-content" }}>
-            {[{ id: "trips", label: user.role === "ADMIN" || user.role === "AGENT" ? "All Bookings" : "My Trips" }, { id: "settings", label: "Profile & Settings" }].map((tab) => (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "2rem", background: "rgba(20,20,25,0.5)", padding: "0.35rem", borderRadius: "0.75rem", width: "fit-content" }}>
+            {[
+              { id: "trips", label: user.role === "ADMIN" || user.role === "AGENT" ? "All Bookings" : "My Trips" }, 
+              { id: "tools", label: "Smart Travel Tools" },
+              { id: "settings", label: "Profile & Settings" }
+            ].map((tab) => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
                 padding: "0.6rem 1.5rem", borderRadius: "0.5rem", border: "none", cursor: "pointer",
                 background: activeTab === tab.id ? "rgba(200,149,108,0.15)" : "transparent",
@@ -305,9 +325,10 @@ export default function Dashboard() {
                                 alert("Failed to update status.");
                               }
                             }}
-                            style={{ padding: "0.4rem 0.8rem", borderRadius: "0.4rem", background: "#111118", color: statusColor(b.status).text, border: `1px solid ${statusColor(b.status).text}`, fontWeight: 700, outline: "none", cursor: "pointer" }}
+                            style={{ padding: "0.4rem 0.8rem", borderRadius: "0.4rem", background: "#111118", color: statusColor(b.status).text, border: `1px solid ${statusColor(b.status).text}`, fontWeight: 700, outline: "none", cursor: "pointer", colorScheme: "dark" }}
                           >
-                            {["PENDING", "REVIEWING", "OPTIONS_SENT", "CONFIRMED", "PAYMENT_PENDING", "PAYMENT_RECEIVED", "BOOKING_IN_PROGRESS", "BOOKED", "COMPLETED", "CANCELLED", "REFUNDED"].map(status => (
+                            <option value={b.status}>{b.status.replace(/_/g, " ")}</option>
+                            {(ALLOWED_TRANSITIONS[b.status] || []).map(status => (
                               <option key={status} value={status}>{status.replace(/_/g, " ")}</option>
                             ))}
                           </select>
@@ -325,6 +346,66 @@ export default function Dashboard() {
                 </div>
               )}
             </>
+          ) : activeTab === "tools" ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
+              {/* Smart Packing Checklist */}
+              <div style={{ background: "rgba(20,20,25,0.7)", backdropFilter: "blur(12px)", border: "1px solid rgba(200,149,108,0.1)", borderRadius: "1.25rem", padding: "2.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+                  <div style={{ background: "rgba(200,149,108,0.15)", color: "var(--color-primary-light)", padding: "1rem", borderRadius: "50%" }}>
+                    <FiCheckSquare size={24} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", color: "var(--color-primary-light)", margin: 0 }}>Smart Packing Checklist</h3>
+                    <p style={{ color: "var(--text-tertiary)", fontSize: "0.85rem", margin: 0 }}>Auto-generated based on season & destination.</p>
+                  </div>
+                </div>
+                
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", marginTop: "1.5rem" }}>
+                  {[
+                    { item: "Universal Power Adapter", checked: false },
+                    { item: "Portable Power Bank (10,000mAh+)", checked: true },
+                    { item: "Noise-cancelling Headphones", checked: false },
+                    { item: "Offline Google Maps Downloaded", checked: false },
+                    { item: "E-Visa & Passport Copies", checked: true },
+                  ].map((task, i) => (
+                    <label key={i} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.8rem 1rem", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "0.5rem", cursor: "pointer", transition: "background 0.2s" }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
+                    >
+                      <input type="checkbox" defaultChecked={task.checked} style={{ accentColor: "var(--color-primary)" }} />
+                      <span style={{ color: task.checked ? "var(--text-tertiary)" : "white", textDecoration: task.checked ? "line-through" : "none", fontSize: "0.9rem" }}>{task.item}</span>
+                    </label>
+                  ))}
+                  <button style={{ marginTop: "1rem", background: "transparent", border: "1px dashed rgba(200,149,108,0.4)", color: "var(--color-primary-light)", padding: "0.8rem", borderRadius: "0.5rem", cursor: "pointer", fontSize: "0.85rem", transition: "all 0.2s" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(200,149,108,0.1)"; e.currentTarget.style.borderStyle = "solid"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderStyle = "dashed"; }}
+                  >
+                    + Add Custom Item
+                  </button>
+                </div>
+              </div>
+
+              {/* Trip Cost Splitter */}
+              <div style={{ background: "rgba(20,20,25,0.7)", backdropFilter: "blur(12px)", border: "1px solid rgba(200,149,108,0.1)", borderRadius: "1.25rem", padding: "2.5rem", display: "flex", flexDirection: "column" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+                  <div style={{ background: "rgba(33,150,243,0.15)", color: "#2196f3", padding: "1rem", borderRadius: "50%" }}>
+                    <FiDollarSign size={24} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", color: "var(--color-primary-light)", margin: 0 }}>Trip Expense Splitter</h3>
+                    <p style={{ color: "var(--text-tertiary)", fontSize: "0.85rem", margin: 0 }}>Easily split costs among your group.</p>
+                  </div>
+                </div>
+
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.02)", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.05)", padding: "2rem", textAlign: "center" }}>
+                  <div>
+                    <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>🧮</div>
+                    <h4 style={{ color: "white", marginBottom: "0.5rem" }}>Coming Soon</h4>
+                    <p style={{ color: "var(--text-tertiary)", fontSize: "0.85rem", maxWidth: "250px", margin: "0 auto" }}>Track shared expenses in real-time and settle up effortlessly after your trip.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : (
             <div style={{ background: "rgba(20,20,25,0.7)", backdropFilter: "blur(12px)", border: "1px solid rgba(200,149,108,0.1)", borderRadius: "1.25rem", padding: "2.5rem" }}>
               <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", color: "var(--color-primary-light)", marginBottom: "2rem" }}>Your Profile</h3>
