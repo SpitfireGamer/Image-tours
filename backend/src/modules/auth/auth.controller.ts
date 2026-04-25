@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendSuccess, sendCreated, sendNoContent } from "../../utils/response";
 import * as authService from "./auth.service";
+import { env } from "../../config/env";
+import { User } from "../../models/User";
 
 export const register = catchAsync(async (req: Request, res: Response) => {
   console.log("==> Incoming Registration Request:", req.body);
@@ -53,7 +55,6 @@ export const getMe = catchAsync(async (req: Request, res: Response) => {
 export const logout = catchAsync(async (req: Request, res: Response) => {
   // In a JWT system, we rely on token expiry.
   // Clear refresh token from DB for security.
-  const { User } = await import("../../models/User");
   await User.findByIdAndUpdate(req.user!.id, { refreshToken: null });
   sendNoContent(res);
 });
@@ -69,7 +70,6 @@ export const googleCallback = catchAsync(async (req: Request, res: Response) => 
   });
 
   // Redirect to frontend with token
-  const { env } = await import("../../config/env");
   const params = new URLSearchParams({
     token: result.token,
     refreshToken: result.refreshToken,

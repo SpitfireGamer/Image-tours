@@ -1,9 +1,11 @@
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { User, IUser } from "../../models/User";
 import { OTP } from "../../models/OTP";
 import { AppError } from "../../utils/AppError";
 import { generateTokens } from "../../middleware/auth";
 import { sendOTPEmail, sendWelcomeEmail } from "../../services/email.service";
+import { env } from "../../config/env";
 import type { RegisterInput, LoginInput, VerifyOTPInput, ResetPasswordInput } from "./auth.schema";
 
 /**
@@ -218,7 +220,7 @@ export const handleGoogleAuth = async (profile: {
       name: profile.name,
       googleId: profile.googleId,
       avatar: profile.avatar,
-      phone: "+910000000000", // placeholder — user must update
+      phone: `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`, // unique placeholder
       isVerified: true,
     });
   }
@@ -297,11 +299,8 @@ export const resetPassword = async (input: ResetPasswordInput) => {
  * Refresh access token.
  */
 export const refreshAccessToken = async (refreshToken: string) => {
-  const jwt = await import("jsonwebtoken");
-  const { env } = await import("../../config/env");
-
   try {
-    const decoded = jwt.default.verify(refreshToken, env.JWT_SECRET) as { id: string; type: string };
+    const decoded = jwt.verify(refreshToken, env.JWT_SECRET) as { id: string; type: string };
     if (decoded.type !== "refresh") throw AppError.unauthorized("Invalid refresh token");
 
     const user = await User.findById(decoded.id).select("+refreshToken");
