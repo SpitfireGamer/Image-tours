@@ -37,7 +37,7 @@ function AuthCallbackContent() {
     } else {
       router.push("/login");
     }
-  }, [router, searchParams, login, refreshUser]);
+  }, [router, searchParams]); // Removed unstable dependencies (login, refreshUser) to prevent infinite loops
 
   return (
     <div style={{
