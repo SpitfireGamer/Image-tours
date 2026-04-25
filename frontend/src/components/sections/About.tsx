@@ -37,8 +37,8 @@ export default function About() {
                 }}
               >
                 <Image
-                  src="/images/agent-portrait.png"
-                  alt="Your Travel Concierge"
+                  src="/images/agent-portrait.jpg"
+                  alt="Jayesh Patrikar - Founder"
                   fill
                   style={{ objectFit: "cover" }}
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -104,8 +104,8 @@ export default function About() {
                 className="section-title"
                 style={{ marginBottom: "1.5rem" }}
               >
-                A Real Person.{" "}
-                <span className="text-gradient-gold">Real Care.</span>
+                Jayesh Patrikar.{" "}
+                <span className="text-gradient-gold">Your Travel Partner.</span>
               </h2>
             </Reveal>
 
@@ -119,10 +119,10 @@ export default function About() {
                   marginBottom: "1.25rem",
                 }}
               >
-                I&apos;m not a faceless agency with a call center. I&apos;m one person who
-                genuinely loves travel and genuinely cares about making your trip
-                perfect. When you message me, you talk to me — not a bot, not an
-                intern.
+                Hi, I&apos;m Jayesh Patrikar — the founder of Image Tours &amp; Travel,
+                based in Saoner, Nagpur. I&apos;m not a faceless agency with a call center. When you
+                message me, you talk to me directly — not a bot, not an intern. I genuinely
+                love travel and care about making your trip perfect.
               </p>
             </Reveal>
 
@@ -137,8 +137,8 @@ export default function About() {
                 }}
               >
                 Over the years, I&apos;ve helped hundreds of families, couples, and
-                groups plan trips they still talk about. I handle everything — from
-                finding the right flight to recommending the best local restaurants.
+                groups plan trips they still talk about. From finding the right flight
+                to recommending the best local restaurants — I handle everything.
                 Your only job is to pack your bags and show up.
               </p>
             </Reveal>

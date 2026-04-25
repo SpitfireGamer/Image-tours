@@ -117,6 +117,27 @@ export default function Navbar() {
             </Link>
           ))}
 
+          {/* Dashboard link in topbar for logged-in users */}
+          {user && (
+            <Link
+              href="/dashboard"
+              style={{
+                fontFamily: "var(--font-accent)",
+                fontSize: "0.8125rem",
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "var(--color-primary)",
+                textDecoration: "none",
+                transition: "color 0.3s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-primary-light)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-primary)")}
+            >
+              Dashboard
+            </Link>
+          )}
+
           {/* WhatsApp Button */}
           <a
             href="https://wa.me/917875132513?text=Hi%2C%20I%20want%20to%20plan%20a%20trip!"
@@ -141,10 +162,8 @@ export default function Navbar() {
                 height: "42px",
                 borderRadius: "50%",
                 border: "2px solid",
-                borderColor: dropdownOpen ? "var(--color-primary)" : "rgba(200, 149, 108, 0.35)",
-                background: user
-                  ? "linear-gradient(135deg, var(--color-primary-dark), var(--color-primary))"
-                  : "rgba(200, 149, 108, 0.08)",
+                borderColor: dropdownOpen ? "#4d9fff" : "rgba(77, 159, 255, 0.35)",
+                background: "rgba(10, 20, 40, 0.6)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -152,39 +171,25 @@ export default function Navbar() {
                 transition: "all 0.3s ease",
                 padding: 0,
                 flexShrink: 0,
-                boxShadow: dropdownOpen ? "0 0 16px rgba(200, 149, 108, 0.25)" : "none",
+                boxShadow: dropdownOpen ? "0 0 16px rgba(77, 159, 255, 0.35)" : "none",
+                overflow: "hidden",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "var(--color-primary)";
-                e.currentTarget.style.boxShadow = "0 0 16px rgba(200, 149, 108, 0.25)";
+                e.currentTarget.style.borderColor = "#4d9fff";
+                e.currentTarget.style.boxShadow = "0 0 16px rgba(77, 159, 255, 0.35)";
               }}
               onMouseLeave={(e) => {
                 if (!dropdownOpen) {
-                  e.currentTarget.style.borderColor = "rgba(200, 149, 108, 0.35)";
+                  e.currentTarget.style.borderColor = "rgba(77, 159, 255, 0.35)";
                   e.currentTarget.style.boxShadow = "none";
                 }
               }}
             >
-              {user ? (
-                <span
-                  style={{
-                    fontFamily: "var(--font-accent)",
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                    color: "white",
-                    lineHeight: 1,
-                    userSelect: "none",
-                  }}
-                >
-                  {getInitials(user.name)}
-                </span>
-              ) : (
-                /* Person silhouette SVG for guests */
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M5.5 21c0-3.5 2.9-6.5 6.5-6.5s6.5 3 6.5 6.5" />
-                </svg>
-              )}
+              <img
+                src="/images/plane-logo.png"
+                alt="Menu"
+                style={{ width: "28px", height: "28px", objectFit: "contain" }}
+              />
             </button>
 
             {/* Dropdown Menu */}

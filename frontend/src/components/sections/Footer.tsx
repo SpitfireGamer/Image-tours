@@ -219,7 +219,7 @@ export default function Footer() {
               color: "var(--text-tertiary)",
             }}
           >
-            Made with ❤️ in India
+            Made with ❤️ in Saoner, Nagpur
           </p>
         </div>
       </div>

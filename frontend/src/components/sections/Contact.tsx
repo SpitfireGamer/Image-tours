@@ -170,7 +170,7 @@ export default function Contact() {
                     </svg>
                   ),
                   label: "Location",
-                  value: "Mumbai, India",
+                  value: "Saoner, Nagpur, India",
                 },
               ].map((item, i) => (
                 <div key={i} style={{ textAlign: "center" }}>

@@ -1,312 +1,150 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Reveal from "@/components/ui/Reveal";
 
-const testimonials = [
-  {
-    name: "Priya & Arjun Sharma",
-    location: "Honeymoon — Goa",
-    text: "We had the most magical honeymoon thanks to Image Tours. Every detail was taken care of — from the candlelight dinner on the beach to the private boat ride. Truly unforgettable!",
-    rating: 5,
-  },
-  {
-    name: "Rajesh Mehta",
-    location: "Family Trip — Kerala",
-    text: "Took my parents on their first ever houseboat stay. The way everything was organized, from pickup to drop — my dad said it was the best trip of his life. That means everything.",
-    rating: 5,
-  },
-  {
-    name: "Sneha & Friends",
-    location: "Girls Trip — Manali",
-    text: "Planning a trip with 8 girls is chaos. But one WhatsApp message to Image Tours and everything was sorted. The hotel was gorgeous, the snow activities were perfect. 10/10!",
-    rating: 5,
-  },
-  {
-    name: "Vikram Patel",
-    location: "Solo Trip — Kashmir",
-    text: "I was nervous about traveling solo to Kashmir. But the itinerary was so well planned and the local contacts so reliable, I felt safe and pampered the entire time. Will book again!",
-    rating: 5,
-  },
-  {
-    name: "The Gupta Family",
-    location: "Family Reunion — Rajasthan",
-    text: "12 family members, 3 generations, 7 days in Rajasthan. The logistics should have been a nightmare but Image Tours made it seamless. Heritage hotels, private buses, everything perfect.",
-    rating: 5,
-  },
-];
-
 export default function Testimonials() {
-  const [current, setCurrent] = useState(0);
-  const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [userRating, setUserRating] = useState(0);
+  const [hoveredStar, setHoveredStar] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [userComment, setUserComment] = useState("");
+  const [reviews, setReviews] = useState<
+    { name: string; rating: number; comment: string; date: string }[]
+  >([]);
 
-  const next = useCallback(() => {
-    setCurrent((p) => (p + 1) % testimonials.length);
-  }, []);
-
-  const prev = useCallback(() => {
-    setCurrent((p) => (p - 1 + testimonials.length) % testimonials.length);
-  }, []);
-
+  // Load saved reviews from localStorage
   useEffect(() => {
-    if (!isAutoPlay) return;
-    const timer = setInterval(next, 5000);
-    return () => clearInterval(timer);
-  }, [isAutoPlay, next]);
+    const saved = localStorage.getItem("imageTours_reviews");
+    if (saved) {
+      try { setReviews(JSON.parse(saved)); } catch { /* ignore */ }
+    }
+  }, []);
+
+  const handleSubmitReview = () => {
+    if (userRating === 0 || !userName.trim()) return;
+
+    const newReview = {
+      name: userName.trim(),
+      rating: userRating,
+      comment: userComment.trim(),
+      date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+    };
+
+    const updated = [newReview, ...reviews];
+    setReviews(updated);
+    localStorage.setItem("imageTours_reviews", JSON.stringify(updated));
+    setSubmitted(true);
+    setUserRating(0);
+    setUserName("");
+    setUserComment("");
+    setTimeout(() => setSubmitted(false), 3000);
+  };
+
+  const avgRating = reviews.length
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : "—";
+
+  const StarIcon = ({ filled, size = 18 }: { filled: boolean; size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "var(--color-gold)" : "none"} stroke={filled ? "var(--color-gold)" : "rgba(200,149,108,0.3)"} strokeWidth="1.5">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  );
 
   return (
-    <section
-      id="testimonials"
-      style={{
-        padding: "var(--section-padding) 0",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
+    <section id="testimonials" style={{ padding: "var(--section-padding) 0", position: "relative", overflow: "hidden" }}>
       {/* Background */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%)",
-        }}
-      />
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%)" }} />
 
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
         {/* Header */}
         <Reveal>
-          <div style={{ textAlign: "center", marginBottom: "4rem" }}>
+          <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
             <div className="golden-line" style={{ margin: "0 auto 1.5rem" }} />
-            <p
-              style={{
-                fontFamily: "var(--font-accent)",
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                color: "var(--color-primary)",
-                marginBottom: "1rem",
-              }}
-            >
-              Real Stories
+            <p style={{ fontFamily: "var(--font-accent)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--color-primary)", marginBottom: "1rem" }}>
+              Your Voice Matters
             </p>
             <h2 className="section-title" style={{ marginBottom: "1rem" }}>
-              What Travelers{" "}
-              <span className="text-gradient-gold">Say About Us</span>
+              Rate & Review{" "}
+              <span className="text-gradient-gold">Your Experience</span>
             </h2>
             <p className="section-subtitle" style={{ margin: "0 auto" }}>
-              Don&apos;t take my word for it — here&apos;s what people who traveled with
-              me have to say.
+              We believe in transparency — real feedback from real travelers.
             </p>
           </div>
         </Reveal>
 
-        {/* Testimonial Card */}
-        <Reveal>
-          <div
-            style={{
-              maxWidth: "800px",
-              margin: "0 auto",
-              position: "relative",
-            }}
-            onMouseEnter={() => setIsAutoPlay(false)}
-            onMouseLeave={() => setIsAutoPlay(true)}
-          >
-            <div
-              className="glass-card"
-              style={{
-                padding: "3rem 3.5rem",
-                textAlign: "center",
-                position: "relative",
-              }}
-            >
-              {/* Quote Icon */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: "-1.5rem",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background:
-                    "linear-gradient(135deg, var(--color-primary) 0%, var(--color-gold) 100%)",
-                }}
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="var(--bg-primary)"
-                >
-                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                </svg>
+        {/* Stats Bar */}
+        {reviews.length > 0 && (
+          <Reveal>
+            <div style={{ display: "flex", justifyContent: "center", gap: "3rem", marginBottom: "3rem", flexWrap: "wrap" }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "2.5rem", fontWeight: 700, color: "var(--color-primary-light)" }}>{avgRating}</div>
+                <div style={{ display: "flex", justifyContent: "center", gap: "2px", marginBottom: "0.25rem" }}>
+                  {Array.from({ length: 5 }).map((_, i) => <StarIcon key={i} filled={i < Math.round(Number(avgRating))} size={14} />)}
+                </div>
+                <div style={{ fontFamily: "var(--font-accent)", fontSize: "0.75rem", color: "var(--text-tertiary)" }}>Average Rating</div>
               </div>
-
-              {/* Stars */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "0.25rem",
-                  marginBottom: "1.5rem",
-                  marginTop: "0.5rem",
-                }}
-              >
-                {Array.from({ length: testimonials[current].rating }).map(
-                  (_, i) => (
-                    <svg
-                      key={i}
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="var(--color-gold)"
-                    >
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
-                  )
-                )}
-              </div>
-
-              {/* Text */}
-              <p
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "1.25rem",
-                  fontStyle: "italic",
-                  color: "var(--text-primary)",
-                  lineHeight: 1.8,
-                  marginBottom: "2rem",
-                  minHeight: "100px",
-                }}
-              >
-                &ldquo;{testimonials[current].text}&rdquo;
-              </p>
-
-              {/* Author */}
-              <div>
-                <p
-                  style={{
-                    fontFamily: "var(--font-accent)",
-                    fontSize: "1rem",
-                    fontWeight: 600,
-                    color: "var(--color-primary-light)",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  {testimonials[current].name}
-                </p>
-                <p
-                  style={{
-                    fontFamily: "var(--font-accent)",
-                    fontSize: "0.8125rem",
-                    color: "var(--text-tertiary)",
-                  }}
-                >
-                  {testimonials[current].location}
-                </p>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "var(--font-display)", fontSize: "2.5rem", fontWeight: 700, color: "var(--color-primary-light)" }}>{reviews.length}</div>
+                <div style={{ fontFamily: "var(--font-accent)", fontSize: "0.75rem", color: "var(--text-tertiary)" }}>Total Reviews</div>
               </div>
             </div>
+          </Reveal>
+        )}
 
-            {/* Controls */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "1.5rem",
-                marginTop: "2rem",
-              }}
-            >
-              <button
-                onClick={prev}
-                aria-label="Previous testimonial"
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "rgba(200, 149, 108, 0.08)",
-                  border: "1px solid rgba(200, 149, 108, 0.15)",
-                  cursor: "pointer",
-                  color: "var(--color-primary-light)",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
+        <div style={{ display: "grid", gridTemplateColumns: reviews.length > 0 ? "1fr 1fr" : "1fr", gap: "2rem", maxWidth: "1000px", margin: "0 auto" }} className="review-grid">
+          {/* Rate Us Card */}
+          <Reveal>
+            <div className="glass-card" style={{ padding: "2.5rem", textAlign: "center" }}>
+              <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", color: "white", marginBottom: "0.5rem" }}>Rate Us</h3>
+              <p style={{ color: "var(--text-tertiary)", fontSize: "0.85rem", marginBottom: "1.5rem" }}>Share your experience with Image Tours</p>
 
-              {/* Dots */}
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                {testimonials.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrent(i)}
-                    aria-label={`Go to testimonial ${i + 1}`}
-                    style={{
-                      width: i === current ? "24px" : "8px",
-                      height: "8px",
-                      borderRadius: "4px",
-                      border: "none",
-                      background:
-                        i === current
-                          ? "linear-gradient(90deg, var(--color-primary), var(--color-gold))"
-                          : "rgba(200, 149, 108, 0.2)",
-                      cursor: "pointer",
-                      transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-                    }}
-                  />
+              {/* Star Rating */}
+              <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginBottom: "1.5rem" }}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <button key={i} onClick={() => setUserRating(i + 1)} onMouseEnter={() => setHoveredStar(i + 1)} onMouseLeave={() => setHoveredStar(0)} style={{ cursor: "pointer", background: "none", border: "none", padding: "0.15rem", transition: "transform 0.2s", transform: (hoveredStar || userRating) >= i + 1 ? "scale(1.15)" : "scale(1)" }}>
+                    <StarIcon filled={(hoveredStar || userRating) >= i + 1} size={32} />
+                  </button>
                 ))}
               </div>
 
-              <button
-                onClick={next}
-                aria-label="Next testimonial"
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "rgba(200, 149, 108, 0.08)",
-                  border: "1px solid rgba(200, 149, 108, 0.15)",
-                  cursor: "pointer",
-                  color: "var(--color-primary-light)",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
+              <input placeholder="Your Name" value={userName} onChange={(e) => setUserName(e.target.value)} style={{ width: "100%", padding: "0.7rem 1rem", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(200,149,108,0.15)", borderRadius: "0.5rem", color: "white", fontSize: "0.9rem", marginBottom: "0.75rem", outline: "none" }} />
+              <textarea placeholder="Tell us about your experience (optional)" value={userComment} onChange={(e) => setUserComment(e.target.value)} style={{ width: "100%", padding: "0.7rem 1rem", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(200,149,108,0.15)", borderRadius: "0.5rem", color: "white", fontSize: "0.9rem", minHeight: "80px", resize: "vertical", marginBottom: "1rem", outline: "none" }} />
+
+              <button onClick={handleSubmitReview} disabled={userRating === 0 || !userName.trim()} style={{ width: "100%", padding: "0.8rem", background: userRating > 0 && userName.trim() ? "linear-gradient(135deg, #c8956c, #d4a853)" : "rgba(200,149,108,0.15)", border: "none", borderRadius: "0.5rem", color: userRating > 0 && userName.trim() ? "#0a0a0f" : "var(--text-tertiary)", fontWeight: 700, cursor: userRating > 0 && userName.trim() ? "pointer" : "default", fontSize: "0.9rem", transition: "all 0.3s" }}>
+                {submitted ? "✓ Thank You!" : "Submit Review"}
               </button>
             </div>
-          </div>
-        </Reveal>
+          </Reveal>
+
+          {/* Recent Reviews */}
+          {reviews.length > 0 && (
+            <Reveal delay={0.15}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxHeight: "420px", overflowY: "auto" }}>
+                {reviews.slice(0, 6).map((r, i) => (
+                  <div key={i} className="glass-card" style={{ padding: "1.25rem 1.5rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                      <span style={{ fontFamily: "var(--font-accent)", fontWeight: 600, color: "var(--color-primary-light)", fontSize: "0.95rem" }}>{r.name}</span>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-tertiary)" }}>{r.date}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "2px", marginBottom: "0.5rem" }}>
+                      {Array.from({ length: 5 }).map((_, j) => <StarIcon key={j} filled={j < r.rating} size={14} />)}
+                    </div>
+                    {r.comment && <p style={{ fontFamily: "var(--font-accent)", fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>&ldquo;{r.comment}&rdquo;</p>}
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          )}
+        </div>
       </div>
+
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .review-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </section>
   );
 }
