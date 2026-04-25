@@ -236,6 +236,13 @@ export default function About() {
             gap: 3rem !important;
           }
         }
+        @media (max-width: 480px) {
+          .glass-card {
+            right: 0 !important;
+            bottom: -1rem !important;
+            padding: 1rem 1.5rem !important;
+          }
+        }
       `}</style>
     </section>
   );

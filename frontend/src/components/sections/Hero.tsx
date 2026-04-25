@@ -219,9 +219,9 @@ export default function Hero() {
 
           {/* Stats */}
           <div
+            className="hero-stats-grid"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
               gap: "1.5rem",
               maxWidth: "500px",
               opacity: isLoaded ? 1 : 0,
@@ -258,6 +258,18 @@ export default function Hero() {
             ))}
           </div>
         </div>
+
+        <style jsx>{`
+          .hero-stats-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+          @media (max-width: 600px) {
+            .hero-stats-grid {
+              grid-template-columns: repeat(2, 1fr);
+              gap: 1rem !important;
+            }
+          }
+        `}</style>
 
         {/* Slide Indicators */}
         <div
