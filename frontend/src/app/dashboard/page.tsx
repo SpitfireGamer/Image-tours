@@ -44,13 +44,14 @@ export default function Dashboard() {
     occasion: "",
   });
 
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [fetchingExpenses, setFetchingExpenses] = useState(true);
+  const [submittingExpense, setSubmittingExpense] = useState(false);
+  const [expenseForm, setExpenseForm] = useState({ description: "", amount: "", category: "Food", paidBy: "Me" });
+
   useEffect(() => {
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
-
-  useEffect(() => {
-    if (user) fetchBookings();
-  }, [user]);
 
   const fetchBookings = async () => {
     try {
@@ -67,6 +68,29 @@ export default function Dashboard() {
       setFetching(false);
     }
   };
+
+  const fetchExpenses = async () => {
+    try {
+      const RAW_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const API_URL = RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+      const res = await fetch(`${API_URL}/api/v1/expenses`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const data = await res.json();
+      if (data.success) setExpenses(data.data.expenses || []);
+    } catch (err) {
+      console.error("Failed to fetch expenses", err);
+    } finally {
+      setFetchingExpenses(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchBookings();
+      fetchExpenses();
+    }
+  }, [user]);
 
   const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +132,52 @@ export default function Dashboard() {
       alert("An error occurred. Please try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleExpenseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingExpense(true);
+    try {
+      const payload = {
+        description: expenseForm.description,
+        amount: Number(expenseForm.amount),
+        category: expenseForm.category,
+        paidBy: expenseForm.paidBy,
+      };
+      const RAW_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const API_URL = RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+      const res = await fetch(`${API_URL}/api/v1/expenses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        setExpenseForm({ description: "", amount: "", category: "Food", paidBy: "Me" });
+        fetchExpenses();
+      } else {
+        alert("Failed to add expense");
+      }
+    } catch (err) {
+      alert("Error adding expense");
+    } finally {
+      setSubmittingExpense(false);
+    }
+  };
+
+  const deleteExpense = async (id: string) => {
+    if (!confirm("Delete this expense?")) return;
+    try {
+      const RAW_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const API_URL = RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+      await fetch(`${API_URL}/api/v1/expenses/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      fetchExpenses();
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -170,7 +240,10 @@ export default function Dashboard() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
                 <div><label style={labelStyle}>Travel Type</label>
                   <select value={formData.travelType} onChange={(e) => setFormData({ ...formData, travelType: e.target.value })} style={{ ...inputStyle, background: "#111118" }}>
-                    <option value="FULL_PACKAGE">Full Package</option><option value="FLIGHT">Flight Only</option><option value="TRAIN">Train Only</option><option value="HOTEL">Hotel Only</option>
+                    <option style={{ color: "white", background: "#111118" }} value="FULL_PACKAGE">Full Package</option>
+                    <option style={{ color: "white", background: "#111118" }} value="FLIGHT">Flight Only</option>
+                    <option style={{ color: "white", background: "#111118" }} value="TRAIN">Train Only</option>
+                    <option style={{ color: "white", background: "#111118" }} value="HOTEL">Hotel Only</option>
                   </select>
                 </div>
                 <div><label style={labelStyle}>Adults</label><input required type="number" min="1" max="20" value={formData.adultsCount} onChange={(e) => setFormData({ ...formData, adultsCount: Number(e.target.value) })} style={inputStyle} /></div>
@@ -184,7 +257,14 @@ export default function Dashboard() {
 
               <div><label style={labelStyle}>Occasion (optional)</label>
                 <select value={formData.occasion} onChange={(e) => setFormData({ ...formData, occasion: e.target.value })} style={{ ...inputStyle, background: "#111118" }}>
-                  <option value="">Select occasion...</option><option value="HONEYMOON">Honeymoon</option><option value="ANNIVERSARY">Anniversary</option><option value="FAMILY">Family Trip</option><option value="BUSINESS">Business</option><option value="PILGRIMAGE">Pilgrimage</option><option value="GROUP_TOUR">Group Tour</option><option value="SOLO">Solo Adventure</option>
+                  <option style={{ color: "white", background: "#111118" }} value="">Select occasion...</option>
+                  <option style={{ color: "white", background: "#111118" }} value="HONEYMOON">Honeymoon</option>
+                  <option style={{ color: "white", background: "#111118" }} value="ANNIVERSARY">Anniversary</option>
+                  <option style={{ color: "white", background: "#111118" }} value="FAMILY">Family Trip</option>
+                  <option style={{ color: "white", background: "#111118" }} value="BUSINESS">Business</option>
+                  <option style={{ color: "white", background: "#111118" }} value="PILGRIMAGE">Pilgrimage</option>
+                  <option style={{ color: "white", background: "#111118" }} value="GROUP_TOUR">Group Tour</option>
+                  <option style={{ color: "white", background: "#111118" }} value="SOLO">Solo Adventure</option>
                 </select>
               </div>
 
@@ -232,7 +312,9 @@ export default function Dashboard() {
               { label: "Active Trips", value: bookings.filter(b => !["CANCELLED", "COMPLETED"].includes(b.status)).length, icon: "✈️" },
               { label: "Completed", value: bookings.filter(b => b.status === "COMPLETED").length, icon: "✅" },
               { label: "Pending Review", value: bookings.filter(b => b.status === "PENDING").length, icon: "⏳" },
-            ].map((stat, i) => (
+            ]
+            .filter(stat => stat.value > 0 || stat.label === "Total Requests")
+            .map((stat, i) => (
               <div key={i} style={{ background: "rgba(20,20,25,0.7)", backdropFilter: "blur(12px)", border: "1px solid rgba(200,149,108,0.1)", borderRadius: "1rem", padding: "1.5rem" }}>
                 <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>{stat.icon}</div>
                 <div style={{ fontFamily: "var(--font-display)", fontSize: "1.8rem", fontWeight: 700, color: "var(--color-primary-light)" }}>{stat.value}</div>
@@ -244,7 +326,7 @@ export default function Dashboard() {
           {/* Tab Switcher */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "2rem", background: "rgba(20,20,25,0.5)", padding: "0.35rem", borderRadius: "0.75rem", width: "fit-content" }}>
             {[
-              { id: "trips", label: user.role === "ADMIN" || user.role === "AGENT" ? "All Bookings" : "My Trips" }, 
+              { id: "trips", label: user.role === "ADMIN" || user.role === "AGENT" ? "All Bookings" : "Request History" }, 
               { id: "tools", label: "Smart Travel Tools" },
               { id: "settings", label: "Profile & Settings" }
             ].map((tab) => (
@@ -392,17 +474,51 @@ export default function Dashboard() {
                     <FiDollarSign size={24} />
                   </div>
                   <div>
-                    <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", color: "var(--color-primary-light)", margin: 0 }}>Trip Expense Splitter</h3>
-                    <p style={{ color: "var(--text-tertiary)", fontSize: "0.85rem", margin: 0 }}>Easily split costs among your group.</p>
+                    <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", color: "var(--color-primary-light)", margin: 0 }}>Trip Expense Tracker</h3>
+                    <p style={{ color: "var(--text-tertiary)", fontSize: "0.85rem", margin: 0 }}>Track and manage your expenses.</p>
                   </div>
                 </div>
 
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.02)", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.05)", padding: "2rem", textAlign: "center" }}>
-                  <div>
-                    <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>🧮</div>
-                    <h4 style={{ color: "white", marginBottom: "0.5rem" }}>Coming Soon</h4>
-                    <p style={{ color: "var(--text-tertiary)", fontSize: "0.85rem", maxWidth: "250px", margin: "0 auto" }}>Track shared expenses in real-time and settle up effortlessly after your trip.</p>
-                  </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  {fetchingExpenses ? (
+                    <div style={{ color: "var(--text-tertiary)" }}>Loading expenses...</div>
+                  ) : expenses.length === 0 ? (
+                    <div style={{ padding: "1.5rem", textAlign: "center", background: "rgba(255,255,255,0.02)", borderRadius: "0.75rem" }}>
+                      <p style={{ color: "var(--text-secondary)", margin: 0, fontSize: "0.9rem" }}>No expenses recorded yet.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", maxHeight: "250px", overflowY: "auto", paddingRight: "0.5rem" }}>
+                      {expenses.map((exp: any) => (
+                        <div key={exp._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.8rem 1rem", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "0.5rem" }}>
+                          <div>
+                            <div style={{ color: "white", fontSize: "0.9rem", fontWeight: 600 }}>{exp.description}</div>
+                            <div style={{ color: "var(--text-tertiary)", fontSize: "0.75rem" }}>{exp.category} • Paid by {exp.paidBy}</div>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                            <div style={{ color: "var(--color-primary-light)", fontWeight: 700, fontSize: "1rem" }}>₹{exp.amount}</div>
+                            <button onClick={() => deleteExpense(exp._id)} style={{ background: "transparent", border: "none", color: "#f44336", cursor: "pointer", fontSize: "0.8rem" }}>✖</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleExpenseSubmit} style={{ marginTop: "1rem", padding: "1.2rem", background: "rgba(0,0,0,0.2)", borderRadius: "0.75rem", border: "1px dashed rgba(200,149,108,0.2)" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.8rem", marginBottom: "0.8rem" }}>
+                      <input required placeholder="Description" value={expenseForm.description} onChange={e => setExpenseForm({ ...expenseForm, description: e.target.value })} style={{ width: "100%", padding: "0.6rem 0.8rem", background: "#111118", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.4rem", color: "white", fontSize: "0.85rem" }} />
+                      <input required type="number" placeholder="Amount (₹)" value={expenseForm.amount} onChange={e => setExpenseForm({ ...expenseForm, amount: e.target.value })} style={{ width: "100%", padding: "0.6rem 0.8rem", background: "#111118", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.4rem", color: "white", fontSize: "0.85rem" }} />
+                      <select value={expenseForm.category} onChange={e => setExpenseForm({ ...expenseForm, category: e.target.value })} style={{ width: "100%", padding: "0.6rem 0.8rem", background: "#111118", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.4rem", color: "white", fontSize: "0.85rem", colorScheme: "dark" }}>
+                        <option value="Food">Food</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Stay">Stay</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <input placeholder="Paid By (e.g. Me)" value={expenseForm.paidBy} onChange={e => setExpenseForm({ ...expenseForm, paidBy: e.target.value })} style={{ width: "100%", padding: "0.6rem 0.8rem", background: "#111118", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.4rem", color: "white", fontSize: "0.85rem" }} />
+                    </div>
+                    <button type="submit" disabled={submittingExpense} style={{ width: "100%", padding: "0.7rem", background: submittingExpense ? "rgba(200,149,108,0.3)" : "rgba(200,149,108,0.15)", color: "var(--color-primary-light)", border: "1px solid rgba(200,149,108,0.3)", borderRadius: "0.4rem", fontWeight: 600, cursor: submittingExpense ? "wait" : "pointer", fontSize: "0.85rem", transition: "all 0.2s" }}>
+                      {submittingExpense ? "Adding..." : "+ Add Expense"}
+                    </button>
+                  </form>
                 </div>
               </div>
             </div>

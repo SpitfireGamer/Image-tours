@@ -65,6 +65,7 @@ app.get("/health", (_req, res) => {
 // ═══════════════════════════════════════════
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/v1/expenses", require("./modules/expenses/expenses.routes").default);
 
 // ═══════════════════════════════════════════
 // 404 HANDLER
