@@ -49,7 +49,7 @@ export const refreshToken = catchAsync(async (req: Request, res: Response) => {
 
 export const getMe = catchAsync(async (req: Request, res: Response) => {
   const user = await authService.getCurrentUser(req.user!.id);
-  sendSuccess(res, user);
+  sendSuccess(res, { user });
 });
 
 export const logout = catchAsync(async (req: Request, res: Response) => {
