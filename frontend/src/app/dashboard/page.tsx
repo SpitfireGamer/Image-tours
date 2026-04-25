@@ -39,7 +39,8 @@ export default function Dashboard() {
 
   const fetchBookings = async () => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const RAW_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const API_URL = RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
       const res = await fetch(`${API_URL}/api/v1/bookings`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
@@ -71,7 +72,8 @@ export default function Dashboard() {
       if (formData.specialRequests) payload.specialRequests = formData.specialRequests;
       if (formData.occasion) payload.occasion = formData.occasion;
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const RAW_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const API_URL = RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
       const res = await fetch(`${API_URL}/api/v1/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },

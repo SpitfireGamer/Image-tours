@@ -5,7 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const RAW_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_URL = RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
 
 type AuthMode = "login" | "register" | "verify-otp" | "forgot-password" | "reset-password";
 

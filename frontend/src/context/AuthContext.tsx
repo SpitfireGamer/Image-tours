@@ -36,7 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const RAW_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const API_URL = RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
       const res = await fetch(`${API_URL}/api/v1/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,

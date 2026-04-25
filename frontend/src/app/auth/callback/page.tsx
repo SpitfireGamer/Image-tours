@@ -19,7 +19,9 @@ function AuthCallbackContent() {
       localStorage.setItem("refreshToken", refreshToken);
 
       // Fetch user data and update AuthContext
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/v1/auth/me`, {
+      const RAW_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const API_URL = RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+      fetch(`${API_URL}/api/v1/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())
